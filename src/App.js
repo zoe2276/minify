@@ -1,14 +1,15 @@
 // import logo from './logo.svg';
 import * as React from "react"
 import './App.css';
+// import { Loading } from "./index"
 import { LoginScreen } from "./index"
 
 function App() {
   const [loggedIn, setLoggedIn] = React.useState(false)
   return (
     <>
-      {/* <Button text="Test" action={() => {console.debug("clicked")}} />
-      <Loading /> */}
+      {/* <Button text="Test" action={() => {console.debug("clicked")}} /> */}
+      {/* <Loading /> */}
       {!loggedIn && <LoginScreen loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
     </>
   );
