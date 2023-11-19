@@ -6,7 +6,6 @@ const generateRandomString = (length) => {
     const values = crypto.getRandomValues(new Uint8Array(length));
     return values.reduce((acc, x) => acc + possible[x % possible.length], "");
     }
-const codeVerifier  = generateRandomString(128);
 
 const sha256 = async (plain) => {
     const encoder = new TextEncoder()
@@ -15,43 +14,70 @@ const sha256 = async (plain) => {
 }
 
 const base64encode = (input) => {
+    // const hashArray = Array.from(new Uint8Array(input));
+    // return hashArray.map(b => ('00' + b.toString(16)).slice(-2)).join('');
+
+    /*
+    for some reason this way of processing the arraybuffer doesn't work
+    oh well let's try this one
+    */
+
     return btoa(String.fromCharCode(...new Uint8Array(input)))
         .replace(/=/g, '')
         .replace(/\+/g, '-')
-        .replace(/\//g, '_');
+        .replace(/\//g, '_')
+
+    // i do not know why they compute differently. utf16 vs 8 maybe? idk lol
 }
 
-const waitFor = (conditionFunc) => { // build a delay function to wait until a cond is true
-    const poll = resolve => { // build loop
-        if (conditionFunc()) resolve(); // resolve the promise if the condition is true
-        else setTimeout(() => poll(resolve), 500) ; // otherwise loop back through after .5s
-    }
-    return new Promise(poll); // return the promise; can be used as .then() flow or "await" keyword
-}
+let codeVerifier;
+if (!window.localStorage.getItem('code_verifier')) {
+    codeVerifier = generateRandomString(128);
+    window.localStorage.setItem('code_verifier', codeVerifier);
+} else codeVerifier = window.localStorage.getItem('code_verifier');
 
-const hashed = await sha256(codeVerifier)
-const codeChallenge = base64encode(hashed);
+const verifierHash = await sha256(codeVerifier);
+const codeChallenge = base64encode(verifierHash)
+window.localStorage.setItem('code_challenge', codeChallenge)
 
 export const LoginScreen = ({loggedIn, setLoggedIn}) => {
-    const appId = "1750bdcf3560454783106e7460f9a950"
-    // const appSec = "d543a6e15cde4bcd8e52292084eb4c67"
+    const appId = process.env.REACT_APP_SPOTIFY_ID
+    // const appSec = process.env.REACT_APP_SPOTIFY_SECRET
     const redirectUri = 'http://localhost:3000/callback';
     const [errorState, setErrorState] = React.useState(0);
-    const [token, setToken] = React.useState("");
-    const [loading, setLoading] = React.useState(false);
+    const loading = React.useRef(false);
 
-    const getCode = () => {        
-        const scope = 'user-read-private user-read-email';
-        const authUrl = new URL("https://accounts.spotify.com/authorize") // creates new URL obj
+    const getCode = () => {
+        const scope = [
+            'app-remote-control',
+            'playlist-modify-private',
+            'playlist-modify-public',
+            'playlist-read-collaborative',
+            'playlist-read-private',
+            'streaming',
+            'ugc-image-upload',
+            'user-follow-modify',
+            'user-follow-read',
+            'user-library-modify',
+            'user-library-read',
+            'user-modify-playback-state',
+            'user-read-currently-playing',
+            'user-read-email',
+            'user-read-playback-position',
+            'user-read-playback-state',
+            'user-read-private',
+            'user-read-recently-played',
+            'user-top-read',
+        ].join(' ').trimEnd();
         
-        window.localStorage.setItem('code_verifier', codeVerifier);
+        const authUrl = new URL("https://accounts.spotify.com/authorize") // creates new URL obj
         
         const params =  {
           response_type: 'code',
           client_id: appId,
           scope,
           code_challenge_method: 'S256',
-          code_challenge: codeChallenge,
+          code_challenge: window.localStorage.getItem('code_challenge'),
           redirect_uri: redirectUri,
         } // obj containing the search params
         
@@ -64,33 +90,12 @@ export const LoginScreen = ({loggedIn, setLoggedIn}) => {
         at this point, the user is taken to a spotify screen prompting for creds
         then, they auth the application to have the requested scopes
         then, they are redirected back to the local "server"
-        the redirect includes the auth code in the headers, so the below grabs it
+        the redirect includes the auth code in the headers which is grabbed and 
+        stored locally later.
         */
-
-        waitFor(() => window.location.origin === "https://localhost:3000")
-        .then(() => {
-            const urlParams = new URLSearchParams(window.location.search);
-            console.log(`urlParams: ${urlParams}`)
-            let code;
-            if (urlParams.get("code")) {
-                code = urlParams.get("code")
-                localStorage.setItem("access_code", code)
-            } else {
-                setErrorState(errorState + 1)
-                code = urlParams.get("error")
-                localStorage.setItem("error", code)
-                console.log(code)
-            };
-            console.debug(`Code: ${code}`)
-            setLoading(true);
-        })
-
     }
 
     const getToken = async code => {
-        // Need to route this out; call when window.href contains /callback and fire this? may have to abstract it out of component
-        let codeVerifier = localStorage.getItem('code_verifier');
-    
         const payload = {
         method: 'POST',
         headers: {
@@ -101,34 +106,39 @@ export const LoginScreen = ({loggedIn, setLoggedIn}) => {
             grant_type: 'authorization_code',
             code,
             redirect_uri: redirectUri,
-            code_verifier: codeVerifier,
+            code_verifier: localStorage.getItem('code_verifier'),
         }),
         }
         const url = "https://accounts.spotify.com/api/token"
     
         const body = await fetch(url, payload);
         const response = await body.json();
-        console.log(response)
         localStorage.setItem('access_token', response.access_token);
-        setToken(response.access_token);
+        localStorage.setItem('refresh_token', response.refresh_token);
     }
 
-    if (window.location.pathname === "/callback") {
-        waitFor(() => localStorage.getItem("access_code"))
-        .then(() => {
-            setLoading(false)
-            getToken(localStorage.getItem("access_code"))
-            localStorage.getItem("access_token") ?
-                ( errorState === 0 ? setLoggedIn(true) : setLoggedIn(false) ) :
-                setLoggedIn(false)
-        })
+    if (window.location.search.startsWith("?code" || window.location.search.startsWith("?error"))) {
+        const urlParams = new URLSearchParams(window.location.search); // parse the current url looking for params
+
+        let code;
+        if (urlParams.get("code")) { // if the params are found
+            code = urlParams.get("code") // give us the code in the params
+            localStorage.setItem("access_code", code) // this may be deprecated now?
+        } else {
+            setErrorState(errorState + 1) // if no code is found, we've hit an error
+            code = urlParams.get("error") // gimme dat erruh
+            localStorage.setItem("error", code) // cache dat erruh
+            console.error(code) // log dat erruh
+        };
+        if (!localStorage.getItem('access_token')) getToken(code);
+        else ( errorState === 0 ? setLoggedIn(true) : setLoggedIn(false) )
+        loading.current = false;
     }
 
     return(
         <>
-            {!loggedIn && <Button text="Login" action={getCode} />}
-            {loading && <Loading />}
-            {token}
+            {(!loggedIn && !loading.current) && <Button text="Login" action={getCode} />}
+            {loading.current && <Loading />}
         </>
     )
 }

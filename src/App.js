@@ -10,7 +10,12 @@ function App() {
     <>
       {/* <Button text="Test" action={() => {console.debug("clicked")}} /> */}
       {/* <Loading /> */}
-      {!loggedIn && <LoginScreen loggedIn={loggedIn} setLoggedIn={setLoggedIn} />}
+      {loggedIn && console.log('app.js received logged in param as true')}
+      {!loggedIn ? <LoginScreen loggedIn={loggedIn} setLoggedIn={setLoggedIn} /> :
+        <>
+          <div>Welcome to <b>minify</b></div>
+        </>
+      }
     </>
   );
   
