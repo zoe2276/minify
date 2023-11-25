@@ -2,20 +2,25 @@
 import * as React from "react"
 import './App.css';
 // import { Loading } from "./index"
-import { LoginScreen } from "./index"
+import { LoginScreen, Player, Refresh } from "./index"
 
 function App() {
   const [loggedIn, setLoggedIn] = React.useState(false)
+  if (window.localStorage.getItem('access_token') && !loggedIn) setLoggedIn(true);
   return (
     <>
       {/* <Button text="Test" action={() => {console.debug("clicked")}} /> */}
       {/* <Loading /> */}
-      {loggedIn && console.log('app.js received logged in param as true')}
-      {!loggedIn ? <LoginScreen loggedIn={loggedIn} setLoggedIn={setLoggedIn} /> :
+      {loggedIn ? console.log('app.js received logged in param as true') : console.log(`loggedIn: ${loggedIn}`)}
+      {!loggedIn ? <LoginScreen setLoggedIn={setLoggedIn} /> :
         <>
           <div>Welcome to <b>minify</b></div>
+          <br />
+          <Player />
         </>
       }
+      <br />
+      <Refresh setLoggedIn={setLoggedIn} />
     </>
   );
   

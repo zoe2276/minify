@@ -6,7 +6,7 @@ body {
   display: flex;
   height: 100%;
   justify-content: center;
-  overflow: none;
+  overflow: hidden;
   padding: 1em;
   width: 100%;
 }
@@ -38,6 +38,16 @@ body {
 .button:hover {
   background-color: #313131;
   cursor: pointer;
+}
+
+#playback-button-wrapper {
+  display: flex;
+  justify-content: space-between;
+  width: 40%;
+}
+
+#button-wrapper * {
+  display: inline-block;
 }
 
 @media (prefers-reduced-motion: no-preference) {

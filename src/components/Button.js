@@ -1,6 +1,6 @@
 import * as React from "react"
 
-export const Button = ({text, action}) => {
+export const Button = ({text, id = undefined, action}) => {
     const nonceIt = Math.floor(Math.random() + 1 * 9)
     const nonceLib = "0123456789abcdefghijklmnopqrstuvwxyz".split("")
     const nonce = []
@@ -8,7 +8,6 @@ export const Button = ({text, action}) => {
         nonce.push(nonceLib[Math.floor(Math.random * 36)])
     }
 
-    return (
-        <div key={nonce} className="button" onClick={action}>{text}</div>
-    )
+    if (id === undefined) return <div key={nonce} className="button" onClick={action}>{text}</div>
+    else return <div key={nonce} id={id} className="button" onClick={action}>{text}</div>
 }

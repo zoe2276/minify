@@ -16,6 +16,11 @@ root.render(
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
 
+// component exports:
 export { Button } from "./components/Button"
 export { Loading } from "./components/Loading"
 export { LoginScreen } from "./components/LoginScreen"
+export { Player } from "./components/Player"
+export { Refresh } from "./components/Refresh"
+// function exports:
+export { apiCall } from "./components/_apiCall"

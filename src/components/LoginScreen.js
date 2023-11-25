@@ -40,11 +40,10 @@ const verifierHash = await sha256(codeVerifier);
 const codeChallenge = base64encode(verifierHash)
 window.localStorage.setItem('code_challenge', codeChallenge)
 
-export const LoginScreen = ({loggedIn, setLoggedIn}) => {
+export const LoginScreen = ({ setLoggedIn }) => {
     const appId = process.env.REACT_APP_SPOTIFY_ID
-    // const appSec = process.env.REACT_APP_SPOTIFY_SECRET
     const redirectUri = 'http://localhost:3000/callback';
-    const [errorState, setErrorState] = React.useState(0);
+    const errorState = React.useRef(0);
     const loading = React.useRef(false);
 
     const getCode = () => {
@@ -97,17 +96,17 @@ export const LoginScreen = ({loggedIn, setLoggedIn}) => {
 
     const getToken = async code => {
         const payload = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-            client_id: appId,
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: redirectUri,
-            code_verifier: localStorage.getItem('code_verifier'),
-        }),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                client_id: appId,
+                grant_type: 'authorization_code',
+                code,
+                redirect_uri: redirectUri,
+                code_verifier: localStorage.getItem('code_verifier'),
+            }),
         }
         const url = "https://accounts.spotify.com/api/token"
     
@@ -115,6 +114,7 @@ export const LoginScreen = ({loggedIn, setLoggedIn}) => {
         const response = await body.json();
         localStorage.setItem('access_token', response.access_token);
         localStorage.setItem('refresh_token', response.refresh_token);
+        window.location.href = window.location.origin;
     }
 
     if (window.location.search.startsWith("?code" || window.location.search.startsWith("?error"))) {
@@ -125,20 +125,21 @@ export const LoginScreen = ({loggedIn, setLoggedIn}) => {
             code = urlParams.get("code") // give us the code in the params
             localStorage.setItem("access_code", code) // this may be deprecated now?
         } else {
-            setErrorState(errorState + 1) // if no code is found, we've hit an error
+            errorState.current = errorState.current + 1 // if no code is found, we've hit an error
             code = urlParams.get("error") // gimme dat erruh
             localStorage.setItem("error", code) // cache dat erruh
             console.error(code) // log dat erruh
         };
         if (!localStorage.getItem('access_token')) getToken(code);
-        else ( errorState === 0 ? setLoggedIn(true) : setLoggedIn(false) )
+        else ( errorState.current === 0 ? setLoggedIn(true) : setLoggedIn(false) )
         loading.current = false;
     }
 
+    
+
     return(
         <>
-            {(!loggedIn && !loading.current) && <Button text="Login" action={getCode} />}
-            {loading.current && <Loading />}
+            {!loading.current ? <Button text="Login" action={getCode} /> : <Loading />}
         </>
     )
 }
