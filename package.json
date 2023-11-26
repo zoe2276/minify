@@ -39,6 +39,6 @@
     ]
   },
   "devDependencies": {
-    "electron": "github:castlabs/electron-releases#v26.6.0+wvcus"
+    "electron": "github:castlabs/electron-releases#v27.1.2+wvcus"
   }
 }
