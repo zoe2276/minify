@@ -10,21 +10,27 @@ export const Player = () => {
     const [repeatState, setRepeatState] = React.useState("off");
     const [shuffleState, setShuffleState] = React.useState(false);
 
-    const [contextImage, setContextImage] = React.useState({});
+    const [contextImage, setContextImage] = React.useState();
 
     const [spotifyPlayer, setSpotifyPlayer] = React.useState();
     const [deviceId, setDeviceId] = React.useState();
     
     const buildStateObj = async () => {
         const url ="https://api.spotify.com/v1/me/player"
-        const response = await apiCall(url, 'GET', {})
+        const response = await apiCall(url, 'GET')
         return response;
     }
 
     const buildCurrentlyPlayingObj = async () => {
         const url ="https://api.spotify.com/v1/me/player/currently-playing"
-        const response = await apiCall(url, 'GET', {})
+        const response = await apiCall(url, 'GET')
         return response;
+    }
+
+    const getDevices = async () => {
+        const url = "https://api.spotify.com/v1/me/player/devices"
+        const response = await apiCall(url, 'GET')
+        return await response;
     }
 
     const transferPlayback = React.useCallback(() => {
@@ -57,6 +63,7 @@ export const Player = () => {
             })
             setSpotifyPlayer(device);
             // onReady listener to cache our deviceId
+            // currently pulls as undefined, likely due to lack of VMP signing?
             device.addListener('ready', ({ id }) => {
                 console.log('Ready with Device ID', id);
                 setDeviceId(id);
@@ -65,6 +72,7 @@ export const Player = () => {
             // disconnection handler
             device.addListener('not_ready', ({ id }) => {
                 console.log('Device ID has gone offline', id);
+                device.disconnect();
             });
 
             // error detection (we can do something with these later)
@@ -108,7 +116,7 @@ export const Player = () => {
             }
             playbackTransfer();
             console.error(err);
-            console.debug('apparent cause (current stateObj):');
+            // console.debug('apparent cause (current stateObj):');
         }
 
         try {
@@ -120,7 +128,10 @@ export const Player = () => {
             console.debug('apparent cause (current currentlyPlayingObj):');
             console.debug(currentlyPlayingObj);
             console.debug('attempting to transfer playback to the current device:')
-            transferPlayback();
+            const playbackTransfer = async () => {
+                return await transferPlayback()
+            }
+            playbackTransfer();
         }
 
     }, [transferPlayback, deviceId])
@@ -140,6 +151,20 @@ export const Player = () => {
                 <Control.NextSong />
                 <Control.Repeat repeatState={repeatState} setRepeatState={setRepeatState} />
             </div>
+            <br />
+            <Control.Devices rawDevices={() => getDevices()} activateDevice={id => {
+                const transfer = async () => {
+                    const url = "https://api.spotify.com/v1/me/player";
+                    const response = await apiCall(url, 'PUT', {device_ids: [id]});
+                    return await response;
+                }
+                transfer().then(() => {
+                    console.log(`playback transferred to device ${id}`)
+                    getDevices();
+                })
+            }} removeDevice={id => {
+                console.log(`remove ${id} manually. i can't do it yet.`)
+            }} />
         </>
     )
 }
