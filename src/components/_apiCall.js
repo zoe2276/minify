@@ -20,10 +20,14 @@ export const apiCall = async (url, method, inputData = undefined) => {
                 client_id: process.env.REACT_APP_SPOTIFY_ID
             })
         })
-        const refreshRes = await refreshBody.json();
-        window.localStorage.setItem('access_token', refreshRes.access_token);
-        window.localStorage.setItem('refresh_token', refreshRes.refresh_token);
-        body = await fetch(uri, payload);
+        if (refreshBody.status === 200) {
+            const refreshRes = await refreshBody.json();
+            window.localStorage.setItem('access_token', refreshRes.access_token);
+            window.localStorage.setItem('refresh_token', refreshRes.refresh_token);
+            body = await fetch(uri, payload);
+        } else {
+            console.error('uhh refresh failed?')
+        }
     }
 
     let response;

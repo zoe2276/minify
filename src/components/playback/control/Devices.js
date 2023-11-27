@@ -1,16 +1,17 @@
 import React from 'react';
 import { Button, Loading } from '../../../index'
-export const Devices = ({ rawDevices, activateDevice, removeDevice }) => {
+export const Devices = ({ rawDevices, activateDevice, /*removeDevice*/ active, setActive }) => {
     const [options, setOptions] = React.useState()
 
     const getDevices = React.useCallback(() => {
         return rawDevices().then(res => {
             return res.devices.map((e, ind) => {
                 e.name === 'minify' ? window.localStorage.setItem(`device_id_${ind}`, e.id) : console.log('found', e.name)
+                const buttonClasses = `device-selection-container${active ? ' active' : ''}`
                 return (
-                    <div className='device-selection-container'>
+                    <div className={buttonClasses} >
                         <Button text={e.name} action={() => activateDevice(e.id)} />
-                        <div className='button-remove' onClick={removeDevice(e.id)} >-</div>
+                        <div className='button-remove' /*onClick={removeDevice(e.id)}*/ >-</div>
                         {/* <span className='device-selection-remove'>
                             <Button text='-' action={() => removeDevice(e.id)} />
                         </span> */}
@@ -18,7 +19,7 @@ export const Devices = ({ rawDevices, activateDevice, removeDevice }) => {
                 )
             })
         })
-    }, [rawDevices, activateDevice, removeDevice])
+    }, [rawDevices, activateDevice, active/*, removeDevice*/])
 
     React.useEffect(() => {
         getDevices().then(res => {

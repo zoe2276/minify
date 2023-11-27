@@ -1,5 +1,4 @@
 body {
-  align-content: center;
   align-items: center;
   background-color: #000;
   color: #ddd;
@@ -30,6 +29,18 @@ body {
   }
 }
 
+@keyframes text-scroll {
+  from {
+    transform: translateX(100%);
+  } to {
+    transform: translateX(-100%);
+  }
+}
+
+.active * {
+  background-color: #124812
+}
+
 .button {
   background-color: #121212;
   border: 2px solid black;
@@ -49,7 +60,7 @@ body {
   border-radius: 50%;
   height: 20px;
   position: absolute;
-  left: 80%;
+  left: 75%;
   text-align: center;
   width: 20px;
 }
@@ -57,6 +68,29 @@ body {
 .button-remove:hover {
   background-color: #400;
   cursor: pointer;
+}
+
+.context-art {
+  grid-column: 1 / 3;
+  grid-row: 1;
+}
+
+.context-artist {
+  align-items: start;
+  display: inline-grid;
+  font-weight: bolder;
+  grid-column: 1;
+  grid-row: 2;
+  justify-content: start;
+}
+
+.context-trackname {
+  align-items: start;
+  display: inline-grid;
+  font-weight: bold;
+  grid-column: 2;
+  grid-row: 2;
+  justify-content: end;
 }
 
 .device-selection-container {
@@ -86,6 +120,10 @@ body {
   display: block;
 }
 
+.text-scroll {
+  animation: text-scroll infinite 2500ms linear;
+}
+
 #playback-button-wrapper {
   display: flex;
   justify-content: space-between;
@@ -94,6 +132,12 @@ body {
 
 #button-wrapper * {
   display: inline-block;
+}
+
+#now-playing-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 6fr 1fr;
 }
 
 @media (prefers-reduced-motion: no-preference) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import * as Control from "../components/playback/control"
-// import * as Display from "../components/playback/display"
+import * as Display from "../components/playback/display"
 import { apiCall } from "../index";
 // import { Button } from '../index.js';
 
@@ -10,9 +10,10 @@ export const Player = () => {
     const [repeatState, setRepeatState] = React.useState("off");
     const [shuffleState, setShuffleState] = React.useState(false);
 
-    const [contextImage, setContextImage] = React.useState();
+    const [contextMeta, setContextMeta] = React.useState();
 
-    const [spotifyPlayer, setSpotifyPlayer] = React.useState();
+    const [player, setPlayer] = React.useState();
+    const [active, setActive] = React.useState(false);
     const [deviceId, setDeviceId] = React.useState();
     
     const buildStateObj = async () => {
@@ -33,20 +34,6 @@ export const Player = () => {
         return await response;
     }
 
-    const transferPlayback = React.useCallback(() => {
-        // this will need to be extracted as a component when i have a device transfer system in place
-        // or, do i want to put it into apiCall.js as an automatic fallback fn?
-        // or, do i want to add it as an optional param for the above instead, to fire on specific calls?
-        // i have no idea
-        const id = deviceId;
-        const transfer = async () => {
-            const url = "https://api.spotify.com/v1/me/player";
-            const response = await apiCall(url, 'PUT', {device_ids: [id]});
-            return await response;
-        }
-        return transfer();
-    }, [deviceId])
-
     React.useEffect(() => {
         // load the webplayer SDK from spotify
         const script = document.createElement("script");
@@ -61,18 +48,40 @@ export const Player = () => {
                 getOauthToken: cb => cb(window.localStorage.getItem('access_token')),
                 volume: 0.5
             })
-            setSpotifyPlayer(device);
-            // onReady listener to cache our deviceId
-            // currently pulls as undefined, likely due to lack of VMP signing?
+
+            setPlayer(device);
+
+            // onReady listener to cache our deviceId; doesn't work
+            // have to manually api call to devices endpoint
             device.addListener('ready', ({ id }) => {
-                console.log('Ready with Device ID', id);
-                setDeviceId(id);
+                if (id !== undefined) setDeviceId(id)
+                else {
+                    const url = "https://api.spotify.com/v1/me/player/devices";
+                    apiCall(url, 'GET').then(res => {
+                        res.devices.forEach(e => {
+                            if (e.name === 'minify') {
+                                setDeviceId(e.id);
+                            }
+                        })
+                    })
+                }
             });
 
             // disconnection handler
             device.addListener('not_ready', ({ id }) => {
                 console.log('Device ID has gone offline', id);
                 device.disconnect();
+            });
+
+            // player state change trigger to keep our info up to date
+            device.addListener('player_state_changed', state => {
+                if (!state) return;
+
+                device.getCurrentState().then(state => {
+                    !state ? setActive(false) : setActive(true);
+                })
+
+                handleDisplayObjs();
             });
 
             // error detection (we can do something with these later)
@@ -94,55 +103,61 @@ export const Player = () => {
 
     }, [])
 
-    React.useEffect(() => {
-        const buildObjs = async () => {
-            const temp_stateObj = await buildStateObj()
-            const temp_currentlyPlayingObj = await buildCurrentlyPlayingObj()
-            return {'stateObj': temp_stateObj, 'currentlyPlayingObj': temp_currentlyPlayingObj}
+    const transferPlayback = id => {
+        const transfer = async () => {
+            const url = "https://api.spotify.com/v1/me/player";
+            const response = await apiCall(url, 'PUT', {device_ids: [id]});
+            return await response;
         }
-        const {stateObj, currentlyPlayingObj} = buildObjs();
-
-        try {
-            setRepeatState(stateObj.repeat_state);
-            setShuffleState(stateObj.shuffle_state);
-            setProgress(stateObj.progress_ms)
-            setIsPlaying(stateObj.is_playing)
-        } catch (err) {
-            // most likely means there is no current playback activity. for now we will just log this
-            // in the future, repost with id when i have a device id
-            // this is that attempt
-            const playbackTransfer = async () => {
-                return await transferPlayback();
+        transfer().then(() => {
+            console.log(`playback transferred to device ${id}`)
+            getDevices();
+            
+            const buildObjs = async () => {
+                const temp_stateObj = await buildStateObj()
+                const temp_currentlyPlayingObj = await buildCurrentlyPlayingObj()
+                return {'stateObj': temp_stateObj, 'currentlyPlayingObj': temp_currentlyPlayingObj}
             }
-            playbackTransfer();
-            console.error(err);
-            // console.debug('apparent cause (current stateObj):');
-        }
+            buildObjs().then(({ stateObj, currentlyPlayingObj }) => {
+                console.log('stateObj: ', stateObj);
+                console.log('currentlyPlayingObj', currentlyPlayingObj);
+            });
+        })
+    }
 
-        try {
-            if (currentlyPlayingObj.item.album) setContextImage(currentlyPlayingObj.item.album)
-            else if (currentlyPlayingObj.item.playlist) setContextImage(currentlyPlayingObj.currentTrack.item.playlist)
-        } catch (err) {
-            // same deal.
-            console.error(err);
-            console.debug('apparent cause (current currentlyPlayingObj):');
-            console.debug(currentlyPlayingObj);
-            console.debug('attempting to transfer playback to the current device:')
-            const playbackTransfer = async () => {
-                return await transferPlayback()
-            }
-            playbackTransfer();
-        }
+    const handleDisplayObjs = React.useCallback(() => {
+        buildStateObj().then(res => {
+            // console.log('stateObj: ', res)
+            setRepeatState(res.repeat_state);
+            setShuffleState(res.shuffle_state);
+            setProgress(res.progress_ms)
+            setIsPlaying(res.is_playing)
+        }).catch(err => console.log(err));
 
-    }, [transferPlayback, deviceId])
+        buildCurrentlyPlayingObj().then(res => {
+            // console.log('currentlyPlayingObj: ', res)
+            setContextMeta(res.item)
+        }).catch(err => console.log(err));
+    }, [])
 
-    console.debug(`contextImage:\n${contextImage}`)
+    React.useMemo(() => {
+        // setInterval(() => {
+        //     setRefreshTrigger(!refreshTrigger)
+        // }, 5000)
+        if (isPlaying) handleDisplayObjs();
+    }, [handleDisplayObjs, isPlaying, /*refreshTrigger*/])
+
+    if (contextMeta === undefined) console.debug('no context metadata found...');
 
     return (
         <>
             <div id='now-playing-wrapper'>
-                {/* <Display.Art contextArtData={contextImage} /> */}
-                {spotifyPlayer && deviceId}
+                {contextMeta ? <>
+                    <Display.Art contextArtData={contextMeta.album} />
+                    <Display.TrackInfo contextInfo={contextMeta} />
+                </> : <>
+                    <div><i>Select your device, then begin playing to see the current track information.</i></div><br />
+                </>}
             </div>
             <div id='playback-button-wrapper'>
                 <Control.Shuffle shuffleState={shuffleState} setShuffleState={setShuffleState} />
@@ -152,19 +167,7 @@ export const Player = () => {
                 <Control.Repeat repeatState={repeatState} setRepeatState={setRepeatState} />
             </div>
             <br />
-            <Control.Devices rawDevices={() => getDevices()} activateDevice={id => {
-                const transfer = async () => {
-                    const url = "https://api.spotify.com/v1/me/player";
-                    const response = await apiCall(url, 'PUT', {device_ids: [id]});
-                    return await response;
-                }
-                transfer().then(() => {
-                    console.log(`playback transferred to device ${id}`)
-                    getDevices();
-                })
-            }} removeDevice={id => {
-                console.log(`remove ${id} manually. i can't do it yet.`)
-            }} />
+            <Control.Devices rawDevices={() => getDevices()} activateDevice={transferPlayback} active={active} setActive={setActive} />
         </>
     )
 }

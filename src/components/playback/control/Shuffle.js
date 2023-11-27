@@ -12,8 +12,10 @@ export const Shuffle = ({shuffleState, setShuffleState}) => {
         console.log(`shuffle set to ${!shuffleState}`);
     }
 
+    const classList = `button${shuffleState ? ' active' : ''}`
+
     return (
-        <div id="button-shuffle" className="button" onClick={() => shuffle()}>
+        <div id="button-shuffle" className={classList} onClick={() => shuffle()}>
             {display}
         </div>
     )
