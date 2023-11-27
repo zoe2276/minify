@@ -1,13 +1,13 @@
 import React from 'react';
-import { Button, Loading } from '../../../index'
-export const Devices = ({ rawDevices, activateDevice, /*removeDevice*/ active, setActive }) => {
+import { Button } from '../../../index'
+export const Devices = ({ rawDevices, activateDevice, /*removeDevice, */ active }) => {
     const [options, setOptions] = React.useState()
 
     const getDevices = React.useCallback(() => {
         return rawDevices().then(res => {
             return res.devices.map((e, ind) => {
-                e.name === 'minify' ? window.localStorage.setItem(`device_id_${ind}`, e.id) : console.log('found', e.name)
-                const buttonClasses = `device-selection-container${active ? ' active' : ''}`
+                if(e.name === 'minify') window.localStorage.setItem(`device_id_${ind}`, e.id)
+                const buttonClasses = `device-selection-container${active === e.id ? ' active' : ''}`
                 return (
                     <div className={buttonClasses} >
                         <Button text={e.name} action={() => activateDevice(e.id)} />
@@ -19,13 +19,13 @@ export const Devices = ({ rawDevices, activateDevice, /*removeDevice*/ active, s
                 )
             })
         })
-    }, [rawDevices, activateDevice, active/*, removeDevice*/])
+    }, [rawDevices, activateDevice, active])
 
-    React.useEffect(() => {
-        getDevices().then(res => {
-            setOptions(res)
-        })
-    }, [getDevices])
+    // React.useEffect(() => {
+    //     getDevices().then(res => {
+    //         setOptions(res)
+    //     })
+    // }, [getDevices])
 
     const toggleMenu = () => {
         getDevices().then(res => {
@@ -47,16 +47,16 @@ export const Devices = ({ rawDevices, activateDevice, /*removeDevice*/ active, s
         }
     }
 
-    if (options) {
+    // if (options) {
         return(
             <>
                 <div className='devices-menu-container'>
                     <Button text='Devices' action={() => toggleMenu()} />
                     <div className='devices-menu' id='devices-menu'>
-                        {options}
+                        {options && options}
                     </div>
                 </div>
             </>
         )
-    } else return <Loading />
+    // } // else return <Loading />
 }

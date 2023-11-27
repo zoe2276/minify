@@ -13,10 +13,13 @@ export const TrackInfo = ({ contextInfo }) => {
         }
     }, [contextInfo])
 
+    const artistClasses = `context-artist${artist.length >= 100 ? ' text-scroll' : ''}`
+    const trackClasses = `context-trackname${track.length >= 100 ? ' text-scroll-backwards' : ''}`
+
     return (
         <>
-            <div className='context-artist'>{artist}</div>
-            <div className='context-trackname'>{track}</div>
+            <div className={artistClasses}>{artist}</div>
+            <div className={trackClasses}>{track}</div>
         </>
     )
 }

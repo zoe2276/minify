@@ -28,6 +28,9 @@ export const apiCall = async (url, method, inputData = undefined) => {
         } else {
             console.error('uhh refresh failed?')
         }
+    } else if (body.status === 429) {
+        console.error('ratelimited');
+        return;
     }
 
     let response;
