@@ -16,6 +16,8 @@ export const Player = () => {
     const [player, setPlayer] = React.useState();
     const [active, setActive] = React.useState();
     const [deviceId, setDeviceId] = React.useState();
+
+    if (!deviceId) {} // idk just to get the linter to stop screaming at me that i'm not using it yet
     
     const buildStateObj = async () => {
         const url ="https://api.spotify.com/v1/me/player"
@@ -104,7 +106,7 @@ export const Player = () => {
                     device.getCurrentState().then(state => {
                         !state ? getDevices().then(res => {
                             res.foreach(e => {if (e.is_active) setActive(e.id)})
-                        }).catch(err => {/*we'll deal with this later*/}) : console.debug(state.device_id);
+                        }).catch(err => {/*we'll deal with this later*/}) : console.debug(state.device_id, 'ignore me');
                     })
 
                     handleDisplayObjs();
@@ -154,24 +156,25 @@ export const Player = () => {
 
     return (
         <>
-            <div id='now-playing-wrapper'>
-                {contextMeta ? <>
-                    <Display.Art contextArtData={contextMeta.album} />
-                    <Display.TrackInfo contextInfo={contextMeta} />
-                    <Display.ProgressBar progress={progress} max={trackLength} seekTo={seek} />
-                </> : <>
-                    <div id="not-playing"><i>Select your device, then begin playing to see the current track information.</i></div><br />
-                </>}
+            <div id='playback-wrapper'>
+                <div id='now-playing-wrapper'>
+                    {contextMeta ? <>
+                        <Display.Art contextArtData={contextMeta.album} />
+                        <Display.TrackInfo contextInfo={contextMeta} />
+                        <Display.ProgressBar progress={progress} max={trackLength} seekTo={seek} />
+                    </> : <>
+                        <div id="not-playing"><i>Select your device, then begin playing to see the current track information.</i></div><br />
+                    </>}
+                </div>
+                <div id='playback-button-wrapper'>
+                    <Control.Shuffle shuffleState={shuffleState} setShuffleState={setShuffleState} />
+                    <Control.PreviousSong />
+                    <Control.TogglePlayback progress={progress} setProgress={setProgress} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
+                    <Control.NextSong />
+                    <Control.Repeat repeatState={repeatState} setRepeatState={setRepeatState} />
+                </div>
+                <Control.Devices rawDevices={getDevices} activateDevice={transferPlayback} active={active}  />
             </div>
-            <div id='playback-button-wrapper'>
-                <Control.Shuffle shuffleState={shuffleState} setShuffleState={setShuffleState} />
-                <Control.PreviousSong />
-                <Control.TogglePlayback progress={progress} setProgress={setProgress} isPlaying={isPlaying} setIsPlaying={setIsPlaying} />
-                <Control.NextSong />
-                <Control.Repeat repeatState={repeatState} setRepeatState={setRepeatState} />
-            </div>
-            <br />
-            <Control.Devices rawDevices={getDevices} activateDevice={transferPlayback} active={active}  />
         </>
     )
 }

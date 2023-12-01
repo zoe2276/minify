@@ -21,20 +21,6 @@ const createWindow = () => {
 
 app.whenReady().then(async () => {
   await components.whenReady();
-  // console.log('components ready:', components.status());
-  // console.log('awaiting component status set to "updated"...');
-  // const startTime = new Date()
-  // const maxTime = 60000
-  // while (1) {
-  //   const record = components.status();
-  //     if (record[Object.keys(record)[0]].status === 'updated') {
-  //       console.log(`component loaded in ${new Date() - startTime}ms.`)
-  //       break;
-  //     } else if (record[Object.keys(record)[0]].status !== 'updated' && (new Date() - startTime) > maxTime) {
-  //       console.log(`final state of component:`, record);
-  //       throw Error('component failed to load in time.');
-  //     }
-  // }
   createWindow();
 });
 
@@ -51,3 +37,7 @@ app.on('activate', () => {
       createWindow()
     }
   })
+
+  /*
+npx electron-package -download.mirrorOptions=https://github.com/castlabs/electron-releases/releases/download/v
+  */

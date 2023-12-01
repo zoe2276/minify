@@ -2,48 +2,25 @@
 import * as React from "react"
 import './App.css';
 // import { Loading } from "./index"
-import { LoginScreen, Player, Refresh } from "./index"
+import { LoginScreen, Player, SidebarMenu } from "./index"
 
 function App() {
-  const [loggedIn, setLoggedIn] = React.useState(false)
-  const dev = true;
-  const version = 0.1;
+  const [currentPage, setCurrentPage] = React.useState('login');
+  const [loggedIn, setLoggedIn] = React.useState(false);
+  // const version = 0.1;
+  
   if (window.localStorage.getItem('access_token') && !loggedIn) setLoggedIn(true);
+  if (currentPage === 'login' && loggedIn) setCurrentPage('player');
+  
   return (
     <>
-      {/* <Button text="Test" action={() => {console.debug("clicked")}} /> */}
-      {/* <Loading /> */}
-      {/* {loggedIn ? console.log('app.js received logged in param as true') : console.log(`loggedIn: ${loggedIn}`)} */}
-      {!loggedIn ? <LoginScreen setLoggedIn={setLoggedIn} /> :
-        <>
-          <div id="welcome">Welcome to <b>minify</b> <i>v{version}</i></div>
-          <br />
-          <Player />
-        </>
-      }
+      <SidebarMenu setCurrentPage={setCurrentPage} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+      {currentPage === 'login' && <LoginScreen setLoggedIn={setLoggedIn} />}
+      {currentPage === 'player' && <Player /> }
+      {/* {currentPage === 'settings' && <SettingsMenu />} */}
       <br />
-      {dev && <div id="refresh-wrapper"><Refresh setLoggedIn={setLoggedIn} /></div>}
     </>
   );
-  
-  // return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <img src={logo} className="App-logo" alt="logo" />
-  //       <p>
-  //         Edit <code>src/App.js</code> and save to reload.
-  //       </p>
-  //       <a
-  //         className="App-link"
-  //         href="https://reactjs.org"
-  //         target="_blank"
-  //         rel="noopener noreferrer"
-  //       >
-  //         Learn React
-  //       </a>
-  //     </header>
-  //   </div>
-  // );
 }
 
 export default App;

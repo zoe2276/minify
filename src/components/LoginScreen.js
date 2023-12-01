@@ -139,7 +139,7 @@ export const LoginScreen = ({ setLoggedIn }) => {
 
     return(
         <>
-            {!loading.current ? <Button text="Login" action={getCode} /> : <Loading />}
+            {!loading.current ? <Button text="Login" id='login-button' action={getCode} /> : <Loading />}
         </>
     )
 }

@@ -1,23 +1,20 @@
 body {
-  align-items: center;
   background-color: #000;
   color: #ddd;
-  display: flex;
   font-family: "Nunito", 'Segoe UI';
-  height: 100vh;
-  justify-content: center;
-  width: 100vw;
-}
-
-#root {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  grid-template-rows: repeat(10, 1fr);
 }
 
 ::-webkit-scrollbar { 
   /* this hides the scrollbar while allowing scrolling */
   display: none;
+}
+
+#root {
+  align-items: center;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  width: 100vw;
 }
 
 @keyframes loading-spin {
@@ -35,6 +32,14 @@ body {
   }
 }
 
+@keyframes show-sidebar {
+  0% {
+    left: -100vw;
+  } 100% {
+    left: 0px;
+  }
+}
+
 @keyframes text-scroll {
   from {
     transform: translateX(100%);
@@ -43,7 +48,9 @@ body {
   }
 }
 
-.active .button {
+.active:not(.device-selection-container),
+.active .button,
+.active.button  {
   background-color: #124812
 }
 
@@ -57,8 +64,11 @@ body {
 }
 
 .button:hover {
-  background-color: #313131;
   cursor: pointer;
+}
+
+.button:hover:not(.active) {
+  background-color: #313131;
 }
 
 .button-remove {
@@ -114,9 +124,13 @@ body {
 .device-selection-container .button {
   display: inline-block;
   border-right: 0;
+} .device-selection-container.active .button {
+  background-color: #124812;
 }
 
 .devices-menu {
+  background-color: #000;
+  border-radius: 10% 10% 30% 30%;
   display: none;
   position: absolute;
   z-index: 1;
@@ -126,6 +140,25 @@ body {
   grid-column: 1 / -1;
   grid-row: 1;
   justify-self: end;
+}
+
+.sidebar-menu {
+  display: none;
+  position: absolute;
+  left: -100vw;
+  transition: left 250ms ease-out;
+  z-index: 1;
+}
+
+.sidebar-menu-container {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+  align-self: start;
+}
+
+.shifted {
+  margin-left: 100px;
 }
 
 .show {
@@ -158,15 +191,39 @@ body {
   align-items: center;
 }
 
+#playback-wrapper {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+}
+
+#player-router { 
+  grid-row: 1;
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
 #refresh-wrapper {
-  grid-row: 10;
+  grid-row: 4;
   grid-column: 1;
 }
 
-#welcome {
-  grid-column: 1 / -1;
+#settings-menu-container {
+  display: grid;
   grid-row: 1;
-  align-self: center;
+  grid-column: 1;
+}
+
+#settings-router {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+#sidebar-menu-container {
+  position: absolute;
+  top: 10px;
+  left: 10px;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -174,6 +231,15 @@ body {
     animation: loading-spin infinite 2500ms linear;
     max-width: 300px;
     width: 50%;
+  }
+
+  .show-sidebar {
+    animation: show-sidebar 250ms ease-out;
+    display: grid;
+    height: calc(100vh - 64px);
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(10, 1fr);
+    left: 0;
   }
 
   .text-scroll {

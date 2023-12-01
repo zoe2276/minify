@@ -26,7 +26,7 @@ export const ProgressBar = ({ color = "#124812", progress, max, seekTo }) => {
     }
 
     React.useEffect(() => {
-        document.getElementById('progressbar').addEventListener('click', e => {
+        document.getElementById('progressbar').addEventListener('mouseup', e => {
             const relMousePos = e.offsetX;
             const elementWidth = document.getElementById('progressbar').getBoundingClientRect().width;
             const clickPosRatio = relMousePos / elementWidth;

@@ -22,5 +22,6 @@ export { Loading } from "./components/Loading"
 export { LoginScreen } from "./components/LoginScreen"
 export { Player } from "./components/Player"
 export { Refresh } from "./components/Refresh"
+export { SidebarMenu } from "./components/SidebarMenu"
 // function exports:
 export { apiCall } from "./components/_apiCall"

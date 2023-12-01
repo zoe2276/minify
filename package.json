@@ -1,12 +1,31 @@
 {
   "name": "minify",
   "version": "0.1.0",
+  "author": "zoe2276",
+  "description": "Fully customizable miniplayer for Spotify",
+  "build": {
+    "appId": "zoe2276.minify.0.1.0",
+    "electronDownload": {
+      "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
+  "homepage": "./",
   "private": true,
-  "main": "public/main.js",
+  "main": "public/electron.js",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "cross-env": "^7.0.3",
+    "electron-is-dev": "^2.0.0",
+    "node": "^21.2.0",
     "npm": "^10.2.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -18,7 +37,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "electron ."
+    "electron-build": "electron-builder",
+    "preelectron-pack": "yarn build",
+    "electron-pack": "build -c.extraMetadata.main=build/electron.js",
+    "electron-dev": "concurrently \"cross-env BROWSER=none npm run start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "eslintConfig": {
     "extends": [
@@ -39,6 +61,11 @@
     ]
   },
   "devDependencies": {
-    "electron": "github:castlabs/electron-releases#v27.1.2+wvcus"
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "concurrently": "^8.2.2",
+    "electron": "github:castlabs/electron-releases#v27.1.2+wvcus",
+    "electron-builder": "^24.9.1",
+    "electron-packager": "^17.1.2",
+    "wait-on": "^7.2.0"
   }
 }

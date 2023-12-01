@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '../../../index'
-export const Devices = ({ rawDevices, activateDevice, /*removeDevice, */ active }) => {
+export const Devices = ({ rawDevices, activateDevice, active }) => {
     const [options, setOptions] = React.useState()
 
     const getDevices = React.useCallback(() => {
@@ -11,21 +11,12 @@ export const Devices = ({ rawDevices, activateDevice, /*removeDevice, */ active 
                 return (
                     <div className={buttonClasses} >
                         <Button text={e.name} action={() => activateDevice(e.id)} />
-                        <div className='button-remove' /*onClick={removeDevice(e.id)}*/ >-</div>
-                        {/* <span className='device-selection-remove'>
-                            <Button text='-' action={() => removeDevice(e.id)} />
-                        </span> */}
+                        <div className='button-remove' >-</div>
                     </div>
                 )
             })
         })
     }, [rawDevices, activateDevice, active])
-
-    // React.useEffect(() => {
-    //     getDevices().then(res => {
-    //         setOptions(res)
-    //     })
-    // }, [getDevices])
 
     const toggleMenu = () => {
         getDevices().then(res => {
@@ -47,16 +38,14 @@ export const Devices = ({ rawDevices, activateDevice, /*removeDevice, */ active 
         }
     }
 
-    // if (options) {
-        return(
-            <>
-                <div className='devices-menu-container'>
-                    <Button text='Devices' action={() => toggleMenu()} />
-                    <div className='devices-menu' id='devices-menu'>
-                        {options && options}
-                    </div>
+    return(
+        <>
+            <div className='devices-menu-container'>
+                <Button text='Devices' id='devices-button' action={() => toggleMenu()} />
+                <div className='devices-menu' id='devices-menu'>
+                    {options && options}
                 </div>
-            </>
-        )
-    // } // else return <Loading />
+            </div>
+        </>
+    )
 }
