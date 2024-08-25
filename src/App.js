@@ -2,7 +2,7 @@
 import * as React from "react"
 import './App.css';
 // import { Loading } from "./index"
-import { LoginScreen, Player, SidebarMenu } from "./index"
+import { LoginScreen, Player, SidebarMenu, SettingsMenu } from "./index"
 
 function App() {
   const [currentPage, setCurrentPage] = React.useState('login');
@@ -17,7 +17,7 @@ function App() {
       <SidebarMenu setCurrentPage={setCurrentPage} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
       {currentPage === 'login' && <LoginScreen setLoggedIn={setLoggedIn} />}
       {currentPage === 'player' && <Player /> }
-      {/* {currentPage === 'settings' && <SettingsMenu />} */}
+      {currentPage === 'settings' && <SettingsMenu />}
       <br />
     </>
   );

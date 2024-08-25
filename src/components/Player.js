@@ -2,7 +2,7 @@ import React from 'react';
 import * as Control from "../components/playback/control"
 import * as Display from "../components/playback/display"
 import { apiCall } from "../index";
-// import { Button } from '../index.js';
+import { Loading } from '../index.js';
 
 export const Player = () => {
     const [isPlaying, setIsPlaying] = React.useState(false)
@@ -91,6 +91,7 @@ export const Player = () => {
                             })
                         })
                     }
+                handleDisplayObjs();
                 });
 
                 // disconnection handler
@@ -106,6 +107,7 @@ export const Player = () => {
                     device.getCurrentState().then(state => {
                         !state ? getDevices().then(res => {
                             res.foreach(e => {if (e.is_active) setActive(e.id)})
+                                console.debug(`${active} - current state of 'active'`)
                         }).catch(err => {/*we'll deal with this later*/}) : console.debug(state.device_id, 'ignore me');
                     })
 
@@ -132,7 +134,7 @@ export const Player = () => {
 
         let displayUpdater = setInterval(() => {if (isPlaying) setProgress(progress + 500)}, 500)
         return () => {clearInterval(displayUpdater)}
-    }, [handleDisplayObjs, isPlaying, player, progress])
+    }, [active, handleDisplayObjs, isPlaying, player, progress])
 
     const transferPlayback = id => {
         const transfer = async () => {
@@ -142,7 +144,7 @@ export const Player = () => {
         }
         transfer().then(() => {
             console.log(`playback transferred to device ${id}`)
-            setActive(id)
+            // setActive(id)
             // getDevices();
             handleDisplayObjs();
         })
@@ -163,7 +165,7 @@ export const Player = () => {
                         <Display.TrackInfo contextInfo={contextMeta} />
                         <Display.ProgressBar progress={progress} max={trackLength} seekTo={seek} />
                     </> : <>
-                        <div id="not-playing"><i>Select your device, then begin playing to see the current track information.</i></div><br />
+                        <Loading />
                     </>}
                 </div>
                 <div id='playback-button-wrapper'>
@@ -173,7 +175,7 @@ export const Player = () => {
                     <Control.NextSong />
                     <Control.Repeat repeatState={repeatState} setRepeatState={setRepeatState} />
                 </div>
-                <Control.Devices rawDevices={getDevices} activateDevice={transferPlayback} active={active}  />
+                <Control.Devices rawDevices={getDevices} activateDevice={transferPlayback}  />
             </div>
         </>
     )

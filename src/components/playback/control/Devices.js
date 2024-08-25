@@ -1,13 +1,13 @@
 import React from 'react';
 import { Button } from '../../../index'
-export const Devices = ({ rawDevices, activateDevice, active }) => {
+export const Devices = ({ rawDevices, activateDevice }) => {
     const [options, setOptions] = React.useState()
 
     const getDevices = React.useCallback(() => {
         return rawDevices().then(res => {
             return res.devices.map((e, ind) => {
                 if(e.name === 'minify') window.localStorage.setItem(`device_id_${ind}`, e.id)
-                const buttonClasses = `device-selection-container${active === e.id ? ' active' : ''}`
+                const buttonClasses = `device-selection-container${e.is_active ? ' active' : ''}`
                 return (
                     <div className={buttonClasses} >
                         <Button text={e.name} action={() => activateDevice(e.id)} />
@@ -16,7 +16,7 @@ export const Devices = ({ rawDevices, activateDevice, active }) => {
                 )
             })
         })
-    }, [rawDevices, activateDevice, active])
+    }, [rawDevices, activateDevice])
 
     const toggleMenu = () => {
         getDevices().then(res => {
