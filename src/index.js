@@ -22,6 +22,7 @@ export { Loading } from "./components/Loading"
 export { LoginScreen } from "./components/LoginScreen"
 export { Player } from "./components/Player"
 export { Refresh } from "./components/Refresh"
+export { Setting } from "./components/settings/Setting"
 export { SettingsMenu } from "./components/settings/SettingsMenu"
 export { SidebarMenu } from "./components/SidebarMenu"
 // function exports:

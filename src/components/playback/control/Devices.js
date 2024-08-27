@@ -5,16 +5,20 @@ export const Devices = ({ rawDevices, activateDevice }) => {
 
     const getDevices = React.useCallback(() => {
         return rawDevices().then(res => {
-            return res.devices.map((e, ind) => {
-                if(e.name === 'minify') window.localStorage.setItem(`device_id_${ind}`, e.id)
-                const buttonClasses = `device-selection-container${e.is_active ? ' active' : ''}`
-                return (
-                    <div className={buttonClasses} >
-                        <Button text={e.name} action={() => activateDevice(e.id)} />
-                        <div className='button-remove' >-</div>
-                    </div>
-                )
-            })
+            return res.devices.length > 0 ? 
+                res.devices.map((e, ind) => {
+                    if(e.name === 'minify') window.localStorage.setItem(`device_id_${ind}`, e.id)
+                    const buttonClasses = `device-selection-container${e.is_active ? ' active' : ''}`
+                    return (
+                        <div className={buttonClasses} >
+                            <Button text={e.name} action={() => activateDevice(e.id)} />
+                            <div className='button-remove' >-</div>
+                        </div>
+                    )
+                }) :
+                <div className="device-selection-container" >
+                    <Button text={"No devices. Click to refresh"} action={() => console.debug("no device refresh button")} />
+                </div>
         })
     }, [rawDevices, activateDevice])
 
